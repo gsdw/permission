@@ -1,0 +1,24 @@
+{
+    "name": "gsdw/permission",
+    "description": "Laravel permission plus",
+    "type": "library",
+    "keywords": ["permission"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Giang Soda",
+            "email": "giangsoda@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "gsdw/base": "0.1.*"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Gsdw\\Permission\\": "src/"
+        }
+    }
+}
