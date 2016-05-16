@@ -4,8 +4,8 @@ namespace Gsdw\Permission\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Validator;
-use Gsdw\Permission\Models\Role;
-use Gsdw\Permission\Models\RoleGroup;
+use DB;
+use Gsdw\Permission\Models\User;
 use Gsdw\Base\Helpers\Form;
 
 class UserController extends BaseController
@@ -22,9 +22,9 @@ class UserController extends BaseController
     public function index()
     {
         Form::setData('filter');
-        return view('gsdw_permission::role.list',[
-            'model' => Role::getAllItemGrid(),
-            'title' => 'Role',
+        return view('gsdw_permission::user.list',[
+            'model' => User::getAllItemGrid(),
+            'title' => 'User Manager',
         ]);
     }
     
@@ -35,8 +35,8 @@ class UserController extends BaseController
      */
     public function create()
     {
-        return view('gsdw_permission::role.edit',[
-            'title' => 'Role create',
+        return view('gsdw_permission::user.edit',[
+            'title' => 'User create',
         ]);
     }
     
@@ -50,20 +50,21 @@ class UserController extends BaseController
         try{
             $input = $request->input('item');
             $validator = Validator::make($input, [
-                'name' => 'required|unique:role|max:255',
+                'name' => 'required|max:255',
+                'email' => 'required|unique:user|max:255',
+                'password' => 'required|max:255',
+                'repassword' => 'required|same:password|max:255',
             ]);
             if ($validator->fails()) {
                 Form::setData($input);
                 return redirect()->route($this->prefixPathRoute.'createForm')
                     ->withErrors($validator);
             }
-            $model = Role::create(
-                $input,
-                (array)Input::get('rule'),
-                (array)Input::get('scope')
-            );
+            $input['password'] = bcrypt($input['password']);
+            unset($input['repassword']);
+            $model = User::create($input);
             $messages = array('success'=> [
-                    'Create Role success!',
+                    'Create User success!',
                 ],);
             if($request->input('submit_continue')) {
                 return redirect()->route($this->prefixPathRoute.'editForm', [
@@ -86,15 +87,14 @@ class UserController extends BaseController
      */
     public function edit($id)
     {
-        $model = Role::find($id);
+        $model = User::find($id);
         if(!count($model)) {
             return redirect()->route($this->prefixPathRoute.'list')
-                    ->withErrors('Not found role');
+                    ->withErrors('Not found user');
         }
         Form::setData($model);
-        Form::setData(['rule' => $model->getRules()]);
-        return view('gsdw_permission::role.edit',[
-            'title' => 'Edit role: '.$model->name,
+        return view('gsdw_permission::user.edit',[
+            'title' => 'Edit user: '.$model->name,
         ]);
     }
     
@@ -106,28 +106,35 @@ class UserController extends BaseController
     public function editPost($id)
     {
         try{
-            $model = Role::find($id);
+            $model = User::find($id);
             if (!count($model)) {
                 return redirect()->route($this->prefixPathRoute.'list')
                         ->withErrors('Not found role');
             }
             $input = Input::get('item');
             $validator = Validator::make($input, [
-                'name' => 'required|unique:role,name,'.$id.'|max:255',
+                'name' => 'required|max:255',
+                'email' => 'required|unique:user,id,'.$id.'|max:255',
+                'password' => 'max:255',
+                'repassword' => 'same:password|max:255',
             ]);
             if ($validator->fails()) {
-                Form::setData($model);
                 return redirect()->route($this->prefixPathRoute.'editForm', [
                         'id' => $id,
                     ])->withErrors($validator);
             }
-            $model->update(
-                $input, 
-                (array)Input::get('rule'), 
-                (array)Input::get('scope')
-            );
+            if($input['password']) {
+                if(!$input['repassword']) {
+                    return redirect()->route($this->prefixPathRoute.'editForm', [
+                        'id' => $id,
+                    ])->withErrors('Please input Re-password');
+                }
+                $input['password'] = bcrypt($input['password']);
+            }
+            unset($input['repassword']);
+            $model->update($input);
             $messages = array('success'=> [
-                'Save role success!',
+                'Save User success!',
             ],);
             if(Input::get('submit_continue')) {
                 return redirect()->route($this->prefixPathRoute.'editForm', [
@@ -157,7 +164,7 @@ class UserController extends BaseController
             return redirect()->route($this->prefixPathRoute.'list')
                 ->withErrors('Error token key!');
         }
-        $model = Role::find($id);
+        $model = User::find($id);
         if(!count($model)) {
             return redirect()->route($this->prefixPathRoute.'list')
                     ->withErrors('Not found item');
@@ -173,5 +180,53 @@ class UserController extends BaseController
             return redirect()->route($this->prefixPathRoute.'list')
                     ->withErrors($ex);
         }
+    }
+    
+    /**
+     * mass action
+     * 
+     * @param Request $request
+     * @return type
+     */
+    public function massAction(Request $request)
+    {
+        if (!count($request->input('item')) || !$request->input('item')) {
+            return redirect()->route($this->prefixPathRoute.'list')
+                ->withErrors('Please choose item');
+        }
+        if ($request->input('action') == 'delete') {
+            return $this->massDelete($request);
+        }
+        return redirect()->route($this->prefixPathRoute.'list');
+    }
+    
+    /**
+     * mass action delete
+     * 
+     * @param Request $request
+     * @return type
+     */
+    protected function massDelete(Request $request)
+    {
+        $i = 0;
+        DB::beginTransaction();
+        try{
+            foreach ($request->input('item') as $item) {
+                $model = User::find($item);
+                if(count($model)) {
+                    $model->delete();
+                    $i++;
+                }
+            }
+            $messages = array('success'=> [
+                'Mass delete ' . $i . ' item success!',
+            ],);
+            DB::commit();
+            return redirect()->route($this->prefixPathRoute.'list')
+                    ->with('messages',$messages);
+        } catch (Exception $ex) {
+            DB::rollBack();
+            return redirect()->route($this->prefixPathRoute.$this->suffixPathRoute)->withErrors($ex);
+        }   
     }
 }

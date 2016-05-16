@@ -2,6 +2,7 @@
 namespace Gsdw\Permission\Controllers;
 
 use App\Http\Controllers\Controller;
+use Gsdw\Permission\Helpers\Auth;
 
 class BaseController extends Controller
 {
@@ -16,6 +17,7 @@ class BaseController extends Controller
      */
     public function __construct() {
         $this->prefixPathRoute = '';
+        Auth::getSelf()->validateRule();
         $this->_contruct();
     }
     

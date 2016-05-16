@@ -13,6 +13,7 @@ $routeCollection = Gsdw\Permission\Helpers\General::getRouterAs();
         </span>
         <label class="control-label" for="rule-all">All</label>
     </div>
+    
     @if(count($routeCollection))
         <div class="rule-item-group">
             @foreach ($routeCollection as $routeKey => $routeName)

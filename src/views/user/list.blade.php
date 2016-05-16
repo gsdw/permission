@@ -12,8 +12,8 @@ use Gsdw\Base\Helpers\Form;
     <div class="dataTables_wrapper form-inline dt-bootstrap">
         <div class="row">
             <div class="col-sm-12">
-                <a href="{{ route('auth.role.group.createForm') }}"
-                   class="btn btn-info">Add new role group</a>
+                <a href="{{ route('auth.user.createForm') }}"
+                   class="btn btn-info">Add new</a>
             </div>
         </div>
         
@@ -23,7 +23,7 @@ use Gsdw\Base\Helpers\Form;
             </div>
         </div>
         <div class="row">
-            <form class="form-grid-actions" method="post" action="{{ route('auth.role.group.massAction') }}">
+            <form class="form-grid-actions" method="post" action="{{ route('auth.user.massAction') }}">
                 {!! csrf_field() !!}
                 <div class="col-sm-6 grid-filters">
                     <button type="button" class="btn btn-info btn-search-filter"><span>Search</span></button>
@@ -44,19 +44,25 @@ use Gsdw\Base\Helpers\Form;
                     <table class="table table-striped dataTable">
                         <thead>
                             <tr>
+                                <th>
+                                    <input type="checkbox" class="input-checkbox mass-selectbox" />
+                                </th>
                                 <th class="sortable {{ General::getDirClassHtml('id') }}" onclick="window.location.href='{{General::getUrlOrder('id')}}';">Id</th>
                                 <th class="sortable {{ General::getDirClassHtml('name') }}" onclick="window.location.href='{{General::getUrlOrder('name')}}';">Name</th>
+                                <th class="sortable {{ General::getDirClassHtml('email') }}" onclick="window.location.href='{{General::getUrlOrder('email')}}';">Email</th>
+                                <th class="sortable {{ General::getDirClassHtml('group_name') }}" onclick="window.location.href='{{General::getUrlOrder('group_name')}}';">Group Name</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr class="tr-filter-grid">
                                 <td>
+                                    <td>&nbsp;</td>
                                     <div class="row">
                                         <div class="col-sm-2">
                                             <label>From</label>
                                         </div>
                                         <div class="col-sm-5">
-                                            <input type="text" name="filter[id][from]" value="{{ Form::pullData('id.from') }}" placeholder="From" class="filter-grid" />
+                                            <input type="text" name="filter[user,id][from]" value="{{ Form::pullData('user,id.from') }}" placeholder="From" class="filter-grid" />
                                         </div>
                                     </div>
                                     <div class="row">
@@ -64,14 +70,21 @@ use Gsdw\Base\Helpers\Form;
                                             <label>To</label>
                                         </div>
                                         <div class="col-sm-5">
-                                            <input type="text" name="filter[id][to]" value="{{ Form::pullData('id.to') }}" placeholder="To" class="filter-grid" />
+                                            <input type="text" name="filter[user,id][to]" value="{{ Form::pullData('user,id.to') }}" placeholder="To" class="filter-grid" />
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="row">
                                         <div class="col-sm-5">
-                                            <input type="text" name="filter[name]" value="{{ Form::pullData('name') }}" placeholder="Name" class="filter-grid" />
+                                            <input type="text" name="filter[user,name]" value="{{ Form::pullData('user,name') }}" placeholder="Name" class="filter-grid" />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="row">
+                                        <div class="col-sm-5">
+                                            <input type="text" name="filter[role,name]" value="{{ Form::pullData('role,name') }}" placeholder="Role" class="filter-grid" />
                                         </div>
                                     </div>
                                 </td>
@@ -79,12 +92,17 @@ use Gsdw\Base\Helpers\Form;
                             @if(count($model))
                                 @foreach($model as $item)
                                     <tr>
+                                        <td>
+                                            <input type="checkbox" class="input-checkbox item-id mass-item" name="item[]" value="{{ $item->id }}"
+                                        </td>
                                         <td>{{ $item->id }}</td>
                                         <td>{{ $item->name }}</td>
+                                        <td>{{ $item->email }}</td>
+                                        <td>{{ $item->role_name }}</td>
                                         <td>
-                                            <a href="{{ route('auth.role.group.editForm', ['id' => $item->id ]) }}" class="button btn-edit">Edit</a>
+                                            <a href="{{ route('auth.user.editForm', ['id' => $item->id ]) }}" class="button btn-edit">Edit</a>
                                             <span>|</span>
-                                            <a href="{{ route('auth.role.group.delete', ['id' => $item->id, 'token' => csrf_token() ]) }}" class="button btn-delete delete-confirm">Delete</a>
+                                            <a href="{{ route('auth.user.delete', ['id' => $item->id, 'token' => csrf_token() ]) }}" class="button btn-delete delete-confirm">Delete</a>
                                         </td>
                                     </tr>
                                 @endforeach

@@ -3,6 +3,7 @@ namespace Gsdw\Permission\Models;
 
 use Gsdw\Base\Helpers\General;
 use Illuminate\Support\Facades\Input;
+use DB;
 
 class RoleGroup extends \Illuminate\Database\Eloquent\Model
 {
@@ -50,15 +51,23 @@ class RoleGroup extends \Illuminate\Database\Eloquent\Model
      * @return type
      */
     public function delete() {
-        $result = parent::delete();
-//        Role::where('role_id', $this->id)
-//            ->delete();
-//        RoleRule::where('role_id', $this->id)
-//            ->delete();
-        return $result;
+        DB::beginTransaction();
+        try{
+            $result = parent::delete();
+            Role::where('role_group_id', $this->id)->delete();
+            DB::commit();
+            return $result;
+        } catch (Exception $ex) {
+            DB::rollBack();
+            throw $ex;
+        }
     }
     
-    
+    /**
+     * get option array of role group
+     * 
+     * @return array
+     */
     public static function toOption()
     {
         $collection = self::select('id', 'name')->orderBy('name')->get();

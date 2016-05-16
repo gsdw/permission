@@ -94,6 +94,7 @@ class Role extends BaseModel
                 $dataInsert = [];
                 if(in_array(RoleScope::RULE_ALL, $rules)) {
                     $rules = ['all'];
+                    $scope = [RoleScope::SCOPE_COMPANY];
                 }
                 foreach ($rules as $key => $rule) {
                     $dataInsert[] = [
@@ -111,22 +112,6 @@ class Role extends BaseModel
         }
         return $result;
     }
-    
-    /**
-     * override delete
-     *  + delete role user, delete role rule
-     * @return type
-     */
-    public function delete() 
-    {
-        $result = parent::delete();
-//        RoleUser::where('role_id', $this->id)
-//            ->delete();
-//        RoleRule::where('role_id', $this->id)
-//            ->delete();
-        return $result;
-    }
-
 
     /**
      * get Rules of role
@@ -150,9 +135,34 @@ class Role extends BaseModel
         return $rulesKeyIsRule;
     }
     
-    
+    /**
+     * get roule group model of role
+     * 
+     * @return model
+     */
     public function getRoleGroup()
     {
         return RoleGroup::find($this->role_group_id);
+    }
+    
+    /**
+     * get option array of role
+     * 
+     * @return array
+     */
+    public static function toOption()
+    {
+        $collection = self::select('id', 'name')
+            ->orderBy('name')->get();
+        $result = [];
+        if(count($collection)) {
+            foreach ($collection as $item) {
+                $result[] = [
+                    'value' => $item->id,
+                    'label' => $item->name
+                ];
+            }
+        }
+        return $result;
     }
 }
